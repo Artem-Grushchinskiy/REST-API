@@ -6,8 +6,11 @@ const contactSchema = Joi.object({
   phone: Joi.string().required(),
 });
 
-function validateContact(contact) {
-  return contactSchema.validate(contact);
-}
+const validateContact = (contact) => {
+  const { error } = contactSchema.validate(contact);
+  if (error) {
+    throw new Error(error.details[0].message);
+  }
+};
 
 module.exports = validateContact;

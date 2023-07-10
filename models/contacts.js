@@ -4,28 +4,50 @@ const validateContact = require("../routes/api/validateContact");
 
 const contactsPath = path.join(__dirname, "contacts.json");
 
+const generateId = () => {
+  const id = Math.random().toString(36).substr(2, 9);
+  return id;
+};
+
 const errorMessages = {
   missingField: (fieldName) => `missing required ${fieldName} field`,
   notFound: "Not found",
   failedTo: (action) => `Failed to ${action}`,
 };
 
-const listContacts = async (req, res) => {
+const readContacts = async () => {
   try {
     const data = await fs.readFile(contactsPath, "utf-8");
-    const contacts = JSON.parse(data);
+    return JSON.parse(data);
+  } catch (err) {
+    throw new Error(errorMessages.failedTo("read contacts"));
+  }
+};
+
+const writeContacts = async (contacts) => {
+  try {
+    await fs.writeFile(contactsPath, JSON.stringify(contacts, null, 2));
+  } catch (err) {
+    throw new Error(errorMessages.failedTo("write contacts"));
+  }
+};
+
+const listContacts = async (req, res) => {
+  try {
+    const contacts = await readContacts();
     res.status(200).json(contacts);
   } catch (err) {
-    res.status(500).json({ message: errorMessages.failedTo("read contacts") });
+    res.status(500).json({ message: err.message });
   }
 };
 
 const getContactById = async (req, res) => {
   const { id } = req.params;
   try {
-    const contacts = await listContacts();
-    const contact = contacts.find((contact) => contact.id === id);
+    const contacts = await readContacts();
+    const contact = contacts.find((contact) => contact.id === id.toString());
     if (contact) {
+      console.log(contact);
       res.status(200).json(contact);
     } else {
       res.status(404).json({ message: errorMessages.notFound });
@@ -41,12 +63,12 @@ const removeContact = async (req, res) => {
   const { id } = req.params;
 
   try {
-    const removedContact = await removeContact(id);
-    if (removedContact) {
-      res.status(200).json({ message: "contact deleted" });
-    } else {
-      res.status(404).json({ message: errorMessages.notFound });
-    }
+    const contacts = await readContacts();
+    const updatedContacts = contacts.filter(
+      (contact) => contact.id !== id.toString()
+    );
+    await writeContacts(updatedContacts);
+    res.status(200).json({ message: "contact deleted" });
   } catch (err) {
     res.status(500).json({ message: errorMessages.failedTo("remove contact") });
   }
@@ -72,7 +94,15 @@ const addContact = async (req, res) => {
 
   try {
     validateContact(req.body);
-    const newContact = await addContact(req.body);
+    const contacts = await readContacts();
+    const newContact = {
+      id: generateId(),
+      name,
+      email,
+      phone,
+    };
+    contacts.push(newContact);
+    await writeContacts(contacts);
     res.status(201).json(newContact);
   } catch (err) {
     res.status(500).json({ message: errorMessages.failedTo("add contact") });
@@ -88,9 +118,17 @@ const updateContact = async (req, res) => {
   }
 
   try {
-    const updatedContact = await updateContact(id, { name, email, phone });
-    if (updatedContact) {
-      res.status(200).json(updatedContact);
+    const contacts = await readContacts();
+    const index = contacts.findIndex((contact) => contact.id === id.toString());
+    if (index !== -1) {
+      contacts[index] = {
+        id: id.toString(),
+        name,
+        email,
+        phone,
+      };
+      await writeContacts(contacts);
+      res.status(200).json(contacts[index]);
     } else {
       res.status(404).json({ message: errorMessages.notFound });
     }

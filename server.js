@@ -1,6 +1,25 @@
 const app = require("./app");
+const net = require("net");
 
-const server = app.listen(0, () => {
-  const port = server.address().port;
-  console.log(`Server is running on port ${port}`);
-});
+const findAvailablePort = (startPort, callback) => {
+  const server = net.createServer();
+  server.unref();
+  server.on("error", () => {
+    findAvailablePort(startPort + 1, callback);
+  });
+  server.listen(startPort, () => {
+    server.close(() => {
+      callback(startPort);
+    });
+  });
+};
+
+const server = () => {
+  findAvailablePort(3000, (port) => {
+    app.listen(port, () => {
+      console.log(`Server is running on port ${port}`);
+    });
+  });
+};
+
+server();

@@ -7,11 +7,12 @@ const {
   addContact,
   updateContact,
 } = require("../../models/contacts");
+const validateContact = require("./validateContact");
 
 router.get("/", listContacts);
 router.get("/:id", getContactById);
-router.post("/", addContact);
-router.put("/:id", updateContact);
+router.post("/", validateContact, addContact);
+router.put("/:id", validateContact, updateContact);
 router.delete("/:id", removeContact);
 
 module.exports = router;

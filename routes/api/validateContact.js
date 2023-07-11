@@ -6,11 +6,19 @@ const contactSchema = Joi.object({
   phone: Joi.string().required(),
 });
 
-const validateContact = (contact) => {
-  const { error } = contactSchema.validate(contact);
-  if (error) {
-    throw new Error(error.details[0].message);
+const validateContact = (req, res, next) => {
+  const { name, email, phone } = req.body;
+
+  if (!name || !email || !phone) {
+    return res.status(400).json({ message: "Missing fields" });
   }
+
+  const { error } = contactSchema.validate(req.body);
+  if (error) {
+    return res.status(400).json({ message: error.details[0].message });
+  }
+
+  next();
 };
 
 module.exports = validateContact;

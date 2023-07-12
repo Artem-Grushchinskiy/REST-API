@@ -1,7 +1,9 @@
 const fs = require("fs/promises");
 const path = require("path");
 
-const contactsPath = path.join(__dirname, "helpers", "contacts.json");
+const contactsPath = path.join(
+  path.join(__dirname, "../models", "contacts.json")
+);
 
 const generateId = () => {
   const id = Math.random().toString(36).substr(2, 9);

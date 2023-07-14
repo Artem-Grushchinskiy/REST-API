@@ -1,5 +1,25 @@
-const app = require('./app')
+const app = require("./app");
+const net = require("net");
 
-app.listen(3000, () => {
-  console.log("Server running. Use our API on port: 3000")
-})
+const findAvailablePort = (startPort, callback) => {
+  const server = net.createServer();
+  server.unref();
+  server.on("error", () => {
+    findAvailablePort(startPort + 1, callback);
+  });
+  server.listen(startPort, () => {
+    server.close(() => {
+      callback(startPort);
+    });
+  });
+};
+
+const server = () => {
+  findAvailablePort(3000, (port) => {
+    app.listen(port, () => {
+      console.log(`Server is running on port ${port}`);
+    });
+  });
+};
+
+server();

@@ -10,7 +10,7 @@ app.use(express.urlencoded({ extended: false }));
 app.use(cors());
 app.use(logger("dev"));
 
-app.use("/api/contact", contactsRouter);
+app.use("/api/contacts", contactsRouter);
 
 app.use((req, res) => {
   res.status(404).json({ message: "Not found" });

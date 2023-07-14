@@ -1,4 +1,5 @@
 const Joi = require("joi");
+const { errorMessages } = require("../../helpers/helpers");
 
 const contactSchema = Joi.object({
   name: Joi.string().required(),
@@ -7,15 +8,17 @@ const contactSchema = Joi.object({
 });
 
 const validateContact = (req, res, next) => {
-  const { name, email, phone } = req.body;
-
-  if (!name || !email || !phone) {
-    return res.status(400).json({ message: "Missing fields" });
+  if (Object.keys(req.body).length === 0) {
+    return res
+      .status(400)
+      .json({ message: errorMessages.missingField("fields") });
   }
 
   const { error } = contactSchema.validate(req.body);
   if (error) {
-    return res.status(400).json({ message: error.details[0].message });
+    return res.status(400).json({
+      message: errorMessages.missingField(error.details[0].context.key),
+    });
   }
 
   next();

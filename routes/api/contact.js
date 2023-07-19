@@ -6,13 +6,14 @@ const {
   removeContact,
   addContact,
   updateContact,
-} = require("../../models/contacts");
-const validateContact = require("./validateContact");
+  updateStatusContact,
+} = require("../../controllers/contacts");
 
 router.get("/", listContacts);
 router.get("/:id", getContactById);
-router.post("/", validateContact, addContact);
-router.put("/:id", validateContact, updateContact);
+router.post("/", addContact);
+router.put("/:id", updateContact);
 router.delete("/:id", removeContact);
+router.patch("/:contactId/favorite", updateStatusContact);
 
 module.exports = router;

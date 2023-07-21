@@ -1,5 +1,5 @@
 const mongoose = require("mongoose");
-
+const Joi = require("joi");
 const userContact = new mongoose.Schema(
   {
     name: {
@@ -17,9 +17,19 @@ const userContact = new mongoose.Schema(
       default: false,
     },
   },
-  { collection: "contacts" }
+  { versionKey: false }
 );
 
-const userModal = mongoose.model("user", userContact);
+const userModal = mongoose.model("contact", userContact);
 
-module.exports = userModal;
+const contactSchema = Joi.object({
+  name: Joi.string().required(),
+  email: Joi.string().email().required(),
+  phone: Joi.string().required(),
+  favorite: Joi.bool(),
+});
+const favoriteSchema = Joi.object({
+  favorite: Joi.bool().required(),
+});
+
+module.exports = { userModal, contactSchema, favoriteSchema };

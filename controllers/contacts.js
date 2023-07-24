@@ -13,7 +13,6 @@ const listContacts = async (req, res) => {
 
 const getContactById = async (req, res) => {
   const { id } = req.params;
-
   const contact = await services.getContactById(id);
   if (!contact) {
     res.status(404).json({ message: "Not Found" });
@@ -35,7 +34,6 @@ const removeContact = async (req, res) => {
 
 const addContact = async (req, res) => {
   const { name, email, phone } = req.body;
-
   if (!name || !email || !phone) {
     res.status(400).json({ message: "Missing fields" });
     return;
@@ -63,6 +61,7 @@ const updateStatusContact = async (req, res) => {
   const { contactId } = req.params;
 
   const updatedContact = await services.updateContact(contactId, req.body);
+
   if (!updatedContact) {
     res.status(404).json({ message: "Not found" });
     return;
@@ -78,3 +77,8 @@ module.exports = {
   updateContact,
   updateStatusContact,
 };
+
+// if (!name && !email && !phone) {
+// res.status(400).json({ message: "Missing fields" });
+// return;
+// }

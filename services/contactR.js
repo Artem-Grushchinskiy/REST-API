@@ -13,18 +13,28 @@ const createContact = async (contacts) => {
 };
 
 const getContactById = async (id) => {
-  helpers.isValidID(id);
+  const boolID = helpers.isValidID(id);
+  if (boolID === false) {
+    return;
+  }
   const contact = await userModal.findById(id).exec();
   return contact;
 };
 
 const updateContact = async (id, contact) => {
-  helpers.isValidID(id);
+  const boolID = helpers.isValidID(id);
+  if (boolID === false) {
+    return;
+  }
   const result = await userModal.findByIdAndUpdate(id, contact, { new: true });
   return result;
 };
 
 const deleteContact = async (id) => {
+  const boolID = helpers.isValidID(id);
+  if (boolID === false) {
+    return;
+  }
   const result = await userModal.findByIdAndDelete(id);
   return result;
 };

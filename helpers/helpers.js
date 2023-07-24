@@ -20,6 +20,7 @@ const errorMessages = {
 const isValidID = (id) => {
   return mongoose.isValidObjectId(id);
 };
+
 const ctrlWrapper = (ctrl) => {
   const func = async (req, res, next) => {
     try {
@@ -28,19 +29,32 @@ const ctrlWrapper = (ctrl) => {
       next(error);
     }
   };
-
   return func;
 };
 
 const validateBody = (schema) => {
   const func = (req, res, next) => {
+    const requiredFields = schema.describe().keys;
+    const missingFields = [];
+    for (const field of Object.keys(requiredFields)) {
+      if (
+        requiredFields[field].flags?.presence === "required" &&
+        !req.body[field]
+      ) {
+        missingFields.push(field);
+      }
+    }
+    if (missingFields.length > 0) {
+      return res
+        .status(400)
+        .json({ message: `Missing fields: ${missingFields.join(", ")}` });
+    }
     const { error } = schema.validate(req.body);
     if (error) {
-      res.status(404).json({ message: error.details[0].message });
+      return res.status(400).json({ message: error.details[0].message });
     }
     next();
   };
-
   return func;
 };
 

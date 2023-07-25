@@ -1,47 +1,67 @@
-const fs = require("fs/promises");
-const path = require("path");
-
-const contactsPath = path.join(
-  path.join(__dirname, "../models", "contacts.json")
-);
-
-const generateId = () => {
-  const id = Math.random().toString(36).substr(2, 9);
-  return id;
+const mongoose = require("mongoose");
+const messages = {
+  404: "Not Found",
+  400: "Bad Request",
+  401: "Unathorized",
+  409: "Conflict",
 };
 
+const RequestError = (status, message = messages[status]) => {
+  const error = new Error(message);
+  error.status = status;
+  return error;
+};
 const errorMessages = {
   missingField: (fieldName) => `missing required ${fieldName} field`,
   notFound: "Not found",
   failedTo: (action) => `Failed to ${action}`,
 };
 
-const readContacts = async () => {
-  try {
-    const data = await fs.readFile(contactsPath, "utf-8");
-    return JSON.parse(data);
-  } catch (err) {
-    throw new Error(errorMessages.failedTo("read contacts"));
-  }
+const isValidID = (id) => {
+  return mongoose.isValidObjectId(id);
 };
 
-const writeContacts = async (contacts) => {
-  try {
-    await fs.writeFile(contactsPath, JSON.stringify(contacts, null, 2));
-  } catch (err) {
-    throw new Error(errorMessages.failedTo("write contacts"));
-  }
+const ctrlWrapper = (ctrl) => {
+  const func = async (req, res, next) => {
+    try {
+      await ctrl(req, res, next);
+    } catch (error) {
+      next(error);
+    }
+  };
+  return func;
 };
 
-const handleContactNotFound = (res) => {
-  res.status(404).json({ message: errorMessages.notFound });
+const validateBody = (schema) => {
+  const func = (req, res, next) => {
+    const requiredFields = schema.describe().keys;
+    const missingFields = [];
+    for (const field of Object.keys(requiredFields)) {
+      if (
+        requiredFields[field].flags?.presence === "required" &&
+        !req.body[field]
+      ) {
+        missingFields.push(field);
+      }
+    }
+    if (missingFields.length > 0) {
+      return res
+        .status(400)
+        .json({ message: `Missing fields: ${missingFields.join(", ")}` });
+    }
+    const { error } = schema.validate(req.body);
+    if (error) {
+      return res.status(400).json({ message: error.details[0].message });
+    }
+    next();
+  };
+  return func;
 };
 
 module.exports = {
-  generateId,
+  RequestError,
   errorMessages,
-  readContacts,
-  writeContacts,
-  handleContactNotFound,
-  contactsPath,
+  isValidID,
+  ctrlWrapper,
+  validateBody,
 };

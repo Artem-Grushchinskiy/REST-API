@@ -2,13 +2,15 @@ const { userModal } = require("../models/modelContact");
 const helpers = require("../helpers/helpers");
 const mongoose = require("mongoose");
 
-const getContacts = async () => {
-  const data = await userModal.find({});
+const getContacts = async (user_id) => {
+  const data = await userModal
+    .find({ user_id }, "-createdAt")
+    .populate("user_id", "name");
   return data;
 };
 
-const createContact = async (contacts) => {
-  const user = await userModal.create(contacts);
+const createContact = async (contacts, user_id) => {
+  const user = await userModal.create({ ...contacts, user_id });
   return user;
 };
 

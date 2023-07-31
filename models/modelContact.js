@@ -1,5 +1,8 @@
 const mongoose = require("mongoose");
 const Joi = require("joi");
+
+const isbnRegexp = /^\d{2}-\d{2}-\d{4}$/;
+
 const userContact = new mongoose.Schema(
   {
     name: {
@@ -15,6 +18,17 @@ const userContact = new mongoose.Schema(
     favorite: {
       type: Boolean,
       default: false,
+    },
+    date: {
+      type: String,
+      match: isbnRegexp,
+      unique: true,
+      required: true,
+    },
+    user_id: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "user",
+      required: true,
     },
   },
   { versionKey: false }

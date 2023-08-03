@@ -3,7 +3,7 @@ const Joi = require("joi");
 
 const isbnRegexp = /^\d{2}-\d{2}-\d{4}$/;
 
-const userContact = new mongoose.Schema(
+const contactMongoSchema = new mongoose.Schema(
   {
     name: {
       type: String,
@@ -34,7 +34,7 @@ const userContact = new mongoose.Schema(
   { versionKey: false }
 );
 
-const userModal = mongoose.model("contact", userContact);
+const contactModel = mongoose.model("contact", contactMongoSchema);
 
 const contactSchema = Joi.object({
   name: Joi.string().required(),
@@ -46,4 +46,4 @@ const favoriteSchema = Joi.object({
   favorite: Joi.bool().required(),
 });
 
-module.exports = { userModal, contactSchema, favoriteSchema };
+module.exports = { contactModel, contactSchema, favoriteSchema };

@@ -1,6 +1,6 @@
 const jwt = require("jsonwebtoken");
 const { SECRET_KEY } = process.env;
-const { registerModal } = require("../models/user");
+const { userModel } = require("../models/user");
 
 const sendUnauthorizedResponse = (res, message) => {
   res.status(401).json({ message: message || "Not authorized" });
@@ -15,23 +15,23 @@ const authMiddleware = async (req, res, next) => {
 
     const token = authorization.split(" ")[1];
     if (!token) {
-      return sendUnauthorizedResponse(res, "Token missing");
+      return sendUnauthorizedResponse(res);
     }
 
     const decodedToken = jwt.verify(token, process.env.SECRET_KEY);
     const { id } = decodedToken;
-    const user = await registerModal.findById(id);
+    const user = await userModel.findById(id);
     if (!user || !user.token || user.token !== token) {
-      return sendUnauthorizedResponse(res, "Invalid token");
+      return sendUnauthorizedResponse(res);
     }
-
+    req.user = user;
     next();
   } catch (error) {
     if (error.name === "TokenExpiredError") {
-      return sendUnauthorizedResponse(res, "Token expired");
+      return sendUnauthorizedResponse(res);
     }
     if (error.name === "JsonWebTokenError") {
-      return sendUnauthorizedResponse(res, "Invalid token");
+      return sendUnauthorizedResponse(res);
     }
     next(error);
   }

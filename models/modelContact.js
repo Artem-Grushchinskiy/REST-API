@@ -1,6 +1,9 @@
 const mongoose = require("mongoose");
 const Joi = require("joi");
-const userContact = new mongoose.Schema(
+
+const isbnRegexp = /^\d{2}-\d{2}-\d{4}$/;
+
+const contactMongoSchema = new mongoose.Schema(
   {
     name: {
       type: String,
@@ -16,11 +19,22 @@ const userContact = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
+    date: {
+      type: String,
+      match: isbnRegexp,
+      unique: true,
+      required: true,
+    },
+    user_id: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "user",
+      required: true,
+    },
   },
   { versionKey: false }
 );
 
-const userModal = mongoose.model("contact", userContact);
+const contactModel = mongoose.model("contact", contactMongoSchema);
 
 const contactSchema = Joi.object({
   name: Joi.string().required(),
@@ -32,4 +46,4 @@ const favoriteSchema = Joi.object({
   favorite: Joi.bool().required(),
 });
 
-module.exports = { userModal, contactSchema, favoriteSchema };
+module.exports = { contactModel, contactSchema, favoriteSchema };

@@ -7,7 +7,8 @@ const {
 const services = require("../services/contactR");
 
 const listContacts = async (req, res) => {
-  const contacts = await services.getContacts();
+  const { user } = req;
+  const contacts = await services.getContacts(user._id);
   res.status(200).json(contacts);
 };
 
@@ -33,12 +34,13 @@ const removeContact = async (req, res) => {
 };
 
 const addContact = async (req, res) => {
+  const { user } = req;
   const { name, email, phone } = req.body;
   if (!name || !email || !phone) {
     res.status(400).json({ message: "Missing fields" });
     return;
   }
-  const newContact = await services.createContact(req.body);
+  const newContact = await services.createContact(req.body, user._id);
   res.status(201).json(newContact);
 };
 
@@ -77,8 +79,3 @@ module.exports = {
   updateContact,
   updateStatusContact,
 };
-
-// if (!name && !email && !phone) {
-// res.status(400).json({ message: "Missing fields" });
-// return;
-// }

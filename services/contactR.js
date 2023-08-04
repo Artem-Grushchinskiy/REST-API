@@ -1,14 +1,16 @@
-const { userModal } = require("../models/modelContact");
+const { contactModel } = require("../models/modelContact");
 const helpers = require("../helpers/helpers");
 const mongoose = require("mongoose");
 
-const getContacts = async () => {
-  const data = await userModal.find({});
+const getContacts = async (user_id) => {
+  const data = await contactModel
+    .find({ user_id }, "-createdAt")
+    .populate("user_id", "name");
   return data;
 };
 
-const createContact = async (contacts) => {
-  const user = await userModal.create(contacts);
+const createContact = async (contacts, user_id) => {
+  const user = await contactModel.create({ ...contacts, user_id });
   return user;
 };
 
@@ -17,7 +19,7 @@ const getContactById = async (id) => {
   if (boolID === false) {
     return;
   }
-  const contact = await userModal.findById(id).exec();
+  const contact = await contactModel.findById(id).exec();
   return contact;
 };
 
@@ -26,7 +28,9 @@ const updateContact = async (id, contact) => {
   if (boolID === false) {
     return;
   }
-  const result = await userModal.findByIdAndUpdate(id, contact, { new: true });
+  const result = await contactModel.findByIdAndUpdate(id, contact, {
+    new: true,
+  });
   return result;
 };
 
@@ -35,7 +39,7 @@ const deleteContact = async (id) => {
   if (boolID === false) {
     return;
   }
-  const result = await userModal.findByIdAndDelete(id);
+  const result = await contactModel.findByIdAndDelete(id);
   return result;
 };
 

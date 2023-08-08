@@ -1,5 +1,9 @@
 const bcrypt = require("bcrypt");
+const fs = require("fs/promises");
 const jwt = require("jsonwebtoken");
+const Jimp = require("jimp");
+const path = require("path");
+const gravatar = require("gravatar");
 const { SECRET_KEY } = process.env;
 const services = require("../services/userAuth");
 const { userModel, schemas } = require("../models/user");
@@ -12,10 +16,12 @@ const register = async (req, res) => {
     res.status(409).json({ message: "Email in use" });
     return;
   }
+  const avatarURL = gravatar.url(email);
   const hashedPassword = await bcrypt.hash(password, 10);
   const newUser = await services.createUser({
     email,
     password: hashedPassword,
+    avatar_url: avatarURL,
   });
   res.status(201).json({
     users: { email: newUser.email, subscription: newUser.subscription },
@@ -60,10 +66,32 @@ const getCurrent = async (req, res) => {
   const { email, subscription } = req.user;
   res.json({ email, subscription });
 };
+const avatarsDir = path.join(__dirname, "../", "public", "avatars");
+
+const updateAvatar = async (req, res) => {
+  const { _id } = req.user;
+  const { path: tmpUpload, originalname } = req.file;
+  const extention = originalname.split(".").pop();
+  const filename = `${_id}.${extention}`;
+  const resultUpload = path.join(avatarsDir, filename);
+  await fs.rename(tmpUpload, resultUpload);
+  Jimp.read(resultUpload)
+    .then((lenna) => {
+      return lenna.resize(250, 250).write(resultUpload);
+    })
+    .catch((err) => {
+      console.error(err);
+    });
+  const avatarURL = path.join("avatars", filename);
+  await userModel.findByIdAndUpdate(_id, { avatar_url: avatarURL });
+
+  res.json({ avatarURL });
+};
 
 module.exports = {
   register,
   login,
   logout,
   getCurrent,
+  updateAvatar,
 };
